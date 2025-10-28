@@ -1,13 +1,3 @@
-terraform {
-  required_version = ">= 1.0"
-  required_providers {
-    hcloud = {
-      source  = "hetznercloud/hcloud"
-      version = "~> 1.45"
-    }
-  }
-}
-
 provider "hcloud" {
   token = var.hcloud_token
 }
@@ -100,12 +90,4 @@ resource "hcloud_server" "robin_core" {
 resource "hcloud_floating_ip" "robin_core" {
   type      = "ipv4"
   server_id = hcloud_server.robin_core.id
-}
-
-output "server_ip" {
-  value = hcloud_floating_ip.robin_core.ip_address
-}
-
-output "server_id" {
-  value = hcloud_server.robin_core.id
 }
