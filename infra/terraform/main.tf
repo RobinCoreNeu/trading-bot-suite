@@ -5,11 +5,21 @@ terraform {
       source  = "hetznercloud/hcloud"
       version = "~> 1.45"
     }
+    random = {
+      source = "hashicorp/random"
+      version = "~> 3.5"
+    }
   }
 }
 
 provider "hcloud" {
   token = var.hcloud_token
+}
+
+provider "random" {}
+
+resource "random_id" "suffix" {
+  byte_length = 8
 }
 
 # Verwende den existierenden SSH Key von Hetzner
@@ -18,7 +28,7 @@ data "hcloud_ssh_key" "existing_key" {
 }
 
 resource "hcloud_firewall" "robin_core" {
-  name = "robin-core-firewall"
+  name = "rc-firewall-${random_id.suffix.hex}"
 
   rule {
     direction = "in"
@@ -82,7 +92,7 @@ resource "hcloud_firewall" "robin_core" {
 }
 
 resource "hcloud_server" "robin_core" {
-  name        = "robin-core-server"
+  name        = "rc-server-${random_id.suffix.hex}"
   image       = "ubuntu-24.04"
   server_type = "cx21"
   location    = "fsn1"
@@ -96,15 +106,11 @@ resource "hcloud_server" "robin_core" {
   lifecycle {
     ignore_changes = [user_data]
   }
-
-  depends_on = [hcloud_firewall.robin_core]
 }
 
 resource "hcloud_floating_ip" "robin_core" {
   type      = "ipv4"
   server_id = hcloud_server.robin_core.id
-
-  depends_on = [hcloud_server.robin_core]
 }
 
 output "server_ip" {
@@ -115,6 +121,10 @@ output "server_id" {
   value = hcloud_server.robin_core.id
 }
 
-output "ssh_key_used" {
-  value = data.hcloud_ssh_key.existing_key.name
+output "firewall_name" {
+  value = hcloud_firewall.robin_core.name
+}
+
+output "random_suffix" {
+  value = random_id.suffix.hex
 }
