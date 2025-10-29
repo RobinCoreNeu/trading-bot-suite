@@ -1,10 +1,20 @@
+terraform {
+  required_version = ">= 1.0"
+  required_providers {
+    hcloud = {
+      source  = "hetznercloud/hcloud"
+      version = "~> 1.45"
+    }
+  }
+}
+
 provider "hcloud" {
   token = var.hcloud_token
 }
 
-# Verwende den existierenden SSH Key von Hetzner - NAME ANPASSEN!
+# Verwende den existierenden SSH Key von Hetzner
 data "hcloud_ssh_key" "existing_key" {
-  name = "robin-core-prod"  # ÄNDERE DIESEN NAMEN zum exakten Namen aus Hetzner
+  name = "robin-core-prod"
 }
 
 resource "hcloud_firewall" "robin_core" {
@@ -86,20 +96,25 @@ resource "hcloud_server" "robin_core" {
   lifecycle {
     ignore_changes = [user_data]
   }
+
+  depends_on = [hcloud_firewall.robin_core]
 }
 
 resource "hcloud_floating_ip" "robin_core" {
   type      = "ipv4"
   server_id = hcloud_server.robin_core.id
-}
 
-# Debug: Zeige verfügbare SSH Keys
-data "hcloud_ssh_keys" "all_keys" {}
-
-output "available_ssh_keys" {
-  value = data.hcloud_ssh_keys.all_keys.keys[*].name
+  depends_on = [hcloud_server.robin_core]
 }
 
 output "server_ip" {
   value = hcloud_floating_ip.robin_core.ip_address
+}
+
+output "server_id" {
+  value = hcloud_server.robin_core.id
+}
+
+output "ssh_key_used" {
+  value = data.hcloud_ssh_key.existing_key.name
 }
