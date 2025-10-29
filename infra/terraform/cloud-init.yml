@@ -7,7 +7,6 @@ packages:
   - docker-compose
   - fail2ban
   - chrony
-  - ufw
   - curl
   - wget
   - git
@@ -22,13 +21,6 @@ users:
 
 runcmd:
   - usermod -aG docker deploy
-  - ufw allow OpenSSH
-  - ufw allow 80/tcp
-  - ufw allow 443/tcp  
-  - ufw allow 3000/tcp
-  - ufw allow 9090/tcp
-  - ufw allow 9100/tcp
-  - ufw --force enable
   - systemctl enable fail2ban
   - systemctl start fail2ban
   - systemctl enable chrony
@@ -36,4 +28,4 @@ runcmd:
   - systemctl enable docker
   - systemctl start docker
 
-final_message: "RobinCore Server setup completed"
+final_message: "RobinCore configuration applied to existing server"
