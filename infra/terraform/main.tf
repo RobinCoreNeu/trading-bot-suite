@@ -2,9 +2,9 @@ provider "hcloud" {
   token = var.hcloud_token
 }
 
-resource "hcloud_ssh_key" "default" {
-  name       = "robin-core-main"
-  public_key = var.ssh_public_key
+# Verwende den existierenden SSH Key von Hetzner
+data "hcloud_ssh_key" "existing_key" {
+  name = "robin-core-prod"
 }
 
 resource "hcloud_firewall" "robin_core" {
@@ -72,12 +72,13 @@ resource "hcloud_firewall" "robin_core" {
 }
 
 resource "hcloud_server" "robin_core" {
-  name        = "robin-core-${formatdate("YYYYMMDD-hhmmss", timestamp())}"
+  name        = "robin-core-server"
   image       = "ubuntu-24.04"
   server_type = "cx21"
   location    = "fsn1"
 
-  ssh_keys    = [hcloud_ssh_key.default.id]
+  # Verwende den existierenden SSH Key von Hetzner
+  ssh_keys    = [data.hcloud_ssh_key.existing_key.id]
   firewall_ids = [hcloud_firewall.robin_core.id]
 
   user_data = file("${path.module}/cloud-init.yml")
