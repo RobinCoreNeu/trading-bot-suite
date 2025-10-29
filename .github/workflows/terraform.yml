@@ -1,0 +1,41 @@
+name: Terraform Infrastructure
+
+on:
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    name: Terraform Plan/Apply
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: infra/terraform
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Terraform Init
+      run: terraform init
+      env:
+        TF_VAR_hcloud_token: ${{ secrets.HETZNER_API_TOKEN }}
+        TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: Terraform Plan
+      run: terraform plan -no-color
+      env:
+        TF_VAR_hcloud_token: ${{ secrets.HETZNER_API_TOKEN }}
+        TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+      env:
+        TF_VAR_hcloud_token: ${{ secrets.HETZNER_API_TOKEN }}
+        TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
