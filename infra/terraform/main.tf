@@ -17,8 +17,9 @@ data "hcloud_ssh_key" "existing_key" {
   name = "robin-core-prod"
 }
 
+# Firewall für den BESTEHENDEN Server
 resource "hcloud_firewall" "robin_core" {
-  name = "robin-core-firewall-${formatdate("YYYYMMDD-hhmmss", timestamp())}"
+  name = "robin-core-firewall-existing"
 
   rule {
     direction = "in"
@@ -58,21 +59,21 @@ resource "hcloud_firewall" "robin_core" {
   }
 }
 
-resource "hcloud_server" "robin_core" {
-  name        = "robin-core-server-${formatdate("YYYYMMDD-hhmmss", timestamp())}"
-  image       = "ubuntu-24.04"
-  server_type = "cx21"
-  location    = "fsn1"
-  ssh_keys    = [data.hcloud_ssh_key.existing_key.id]
-  firewall_ids = [hcloud_firewall.robin_core.id]
-  user_data   = file("${path.module}/cloud-init.yml")
+# Data source für den BESTEHENDEN Server
+data "hcloud_server" "existing" {
+  name = "existing-server" # Ändere dies zum Namen deines bestehenden Servers
 }
 
-resource "hcloud_floating_ip" "robin_core" {
-  type      = "ipv4"
-  server_id = hcloud_server.robin_core.id
+# Firewall an bestehenden Server anhängen
+resource "hcloud_firewall_attachment" "robin_core" {
+  firewall_id = hcloud_firewall.robin_core.id
+  server_ids  = [data.hcloud_server.existing.id]
 }
 
 output "server_ip" {
-  value = hcloud_floating_ip.robin_core.ip_address
+  value = data.hcloud_server.existing.ipv4_address
+}
+
+output "firewall_status" {
+  value = "Firewall configured for existing server: ${data.hcloud_server.existing.name}"
 }
