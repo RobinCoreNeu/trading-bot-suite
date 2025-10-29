@@ -61,7 +61,7 @@ resource "hcloud_firewall" "robin_core" {
 
 # Data source für den BESTEHENDEN Server
 data "hcloud_server" "existing" {
-  name = "existing-server" # Ändere dies zum Namen deines bestehenden Servers
+  name = "RobinCoreServer" # Ändere dies zum Namen deines bestehenden Servers
 }
 
 # Firewall an bestehenden Server anhängen
