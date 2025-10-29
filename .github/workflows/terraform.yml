@@ -22,14 +22,17 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Clean Terraform State
+      run: |
+        rm -rf .terraform
+        rm -f .terraform.lock.hcl
+        rm -f terraform.tfstate*
+        ls -la
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: 1.5.7
-
-    - name: Skip Terraform Format (Temporary)
-      id: skip_fmt
-      run: echo "Skipping format check for now to unblock deployment"
 
     - name: Terraform Init
       id: init
